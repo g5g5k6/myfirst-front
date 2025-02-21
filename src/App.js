@@ -15,12 +15,39 @@ function StudyPage() {
     const [words, setWords] = useState([]);
     const [index, setIndex] = useState(0);
     const [buttons, setButtons] = useState([]);//TRY
+// 先執行一次 定期發送檢查有無過期 
+const fetchData = () => {
+    reviewGroup()
+    fetch("http://localhost:5000/api/due_groups")
+        .then((response) => response.json())
+        .then((data) => {
+            setWords(data);
+            console.log("Updated words:", data);
+        })
+        .catch((error) => console.error("Error fetching words:", error));
+};
+const reviewGroup = (groupId) => {
+    fetch(`http://localhost:5000/api/review/${groupId}`, {
+        method: "POST",
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        console.log("Review result:", data.message);
+ // 成功後立即刷新可複習單字
+    })
+    .catch((error) => console.error("Error reviewing:", error));
+};
     useEffect(() => {
-        fetch("http://localhost:5000/api/words")
-            .then((response) => response.json())
-            .then((data) => {setWords(data);console.log("Data fetched:", data);})
-            .catch((error) => console.error("Error fetching words:", error));     
+
+        fetchData(); // 先執行一次
+        const interval = setInterval(fetchData, Math.floor(Math.random() * (30000 - 10000 + 1)) + 10000); // 10~30秒隨機刷新
+    
+        return () => clearInterval(interval); // 清除計時
     }, []);
+
+
+
+
     const addButton = () => {
         const newButton = `Button ${buttons.length + 1}`;
         setButtons([...buttons, newButton]);
